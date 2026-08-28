@@ -15,6 +15,8 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/', imageRoutes);
+pp.use('/', postRoutes);
+app.use('/', suggestionRoutes);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(' Error:', err);
@@ -26,4 +28,7 @@ app.listen(config.port, () => {
   console.log(` Health: http://localhost:${config.port}/health`);
   console.log(` Phase 2 - Vision Pipeline Ready`);
   console.log(` POST /api/images/batch-process to start processing`);
+  console.log(` POST /api/posts`);
+  console.log(` GET /api/posts/:id/images`);
+  console.log(` GET /api/suggestions`);
 });

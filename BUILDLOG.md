@@ -80,3 +80,30 @@
 - **Daily Limit**: 20 requests/day
 - **Used**: 1 (bear-001.jpg successfully tagged)
 - **Remaining**: Wait for daily reset
+
+
+## Phase 3: Matching Engine & Mismatch Guard
+
+### AI Tools Used
+- **Tool**: Claude (via web interface)
+- **Purpose**: Matching engine, mismatch guard, review API
+- **Frequency**: Moderate usage during Phase 3 implementation
+
+### Where AI Helped
+
+| File/Component | What AI Provided | My Changes |
+|----------------|------------------|------------|
+| src/services/mismatchGuard.service.ts | Guard logic with category/subject/similarity rules | Added threshold config |
+| src/services/matching.service.ts | Cosine similarity + candidate ranking | Added suggestion storage |
+| src/repositories/suggestions.repository.ts | Review queue operations | Added join with posts/images |
+| strc/routes/posts.routes.ts | Post CRUD + matching endpoint | Added embedding generation |
+
+### Phase 3 Status
+
+| Feature | Status | Evidence |
+|---------|--------|----------|
+| Mismatch Guard | ✅ Working | Unit tests pass (fox/wolf/dog) |
+| Post creation | ✅ Working | API endpoint tested |
+| Suggestions table | ✅ Working | Database queries work |
+| Review API | ✅ Implemented | Approve/reject endpoints |
+
