@@ -1,9 +1,9 @@
 # FlyRank Capstone - AI Image Understanding & Content Matching Engine
-# Phase 1: Design & Setup
+# Phase 2: Vision Pipeline (In Progress)
 
 name: flyrank-capstone-image-relevance
-version: 1.0.0
-phase: 1
+version: 2.0.0
+phase: 2
 
 # Run commands
 run:
@@ -14,6 +14,11 @@ run:
 seed:
   command: npx tsx scripts/seed.ts
   creates: images + posts
+
+# Batch processing
+batch:
+  command: npx tsx scripts/runBatch.ts
+  processes: pending images
 
 # Base URL for API
 base_url: http://localhost:3000
@@ -32,6 +37,11 @@ endpoints:
 
   images_get:
     path: /api/images/:id
+    method: GET
+    expected_status: 200
+
+  images_stats:
+    path: /api/images/stats
     method: GET
     expected_status: 200
 
@@ -58,6 +68,6 @@ database:
 # Status
 status:
   phase1: complete
-  phase2: not_started
+  phase2: in_progress
   phase3: not_started
   phase4: not_started

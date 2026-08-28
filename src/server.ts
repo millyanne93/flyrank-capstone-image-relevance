@@ -1,5 +1,6 @@
 import express from 'express';
 import { config } from './config';
+import imageRoutes from './routes/images.routes';
 
 const app = express();
 app.use(express.json());
@@ -12,6 +13,9 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use('/', imageRoutes);
+
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(' Error:', err);
   res.status(500).json({ error: 'Internal server error' });
@@ -21,4 +25,5 @@ app.listen(config.port, () => {
   console.log(` Server running on http://localhost:${config.port}`);
   console.log(` Health: http://localhost:${config.port}/health`);
   console.log(` Phase 2 - Vision Pipeline Ready`);
+  console.log(` POST /api/images/batch-process to start processing`);
 });
