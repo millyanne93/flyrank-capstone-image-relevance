@@ -1,0 +1,29 @@
+{
+  "eval_set": [
+    {
+      "post_id": "fox-post-1",
+      "post_title": "The Behavior of Red Foxes",
+      "correct_image_filename": "fox-001.jpg"
+    },
+    {
+      "post_id": "wolf-post-1",
+      "post_title": "Wolf Pack Dynamics",
+      "correct_image_filename": "wolf-001.jpg"
+    },
+    {
+      "post_id": "dog-post-1",
+      "post_title": "Understanding Dog Behavior",
+      "correct_image_filename": "dog-001.jpg"
+    },
+    {
+      "post_id": "bear-post-1",
+      "post_title": "The Life of Bears",
+      "correct_image_filename": "bear-001.jpg"
+    },
+    {
+      "post_id": "deer-post-1",
+      "post_title": "Deer in the Wild",
+      "correct_image_filename": "deer-001.jpg"
+    }
+  ]
+}
