@@ -1,0 +1,63 @@
+# FlyRank Capstone - AI Image Understanding & Content Matching Engine
+# Phase 1: Design & Setup
+
+name: flyrank-capstone-image-relevance
+version: 1.0.0
+phase: 1
+
+# Run commands
+run:
+  command: npx tsx src/server.ts
+  env_file: .env
+
+# Seed command
+seed:
+  command: npx tsx scripts/seed.ts
+  creates: images + posts
+
+# Base URL for API
+base_url: http://localhost:3000
+
+# Endpoints to probe
+endpoints:
+  health:
+    path: /health
+    method: GET
+    expected_status: 200
+
+  images_batch:
+    path: /api/images/batch-process
+    method: POST
+    expected_status: 200
+
+  images_get:
+    path: /api/images/:id
+    method: GET
+    expected_status: 200
+
+  posts_matching:
+    path: /api/posts/:id/images
+    method: GET
+    expected_status: 200
+
+# Database schema
+database:
+  host: localhost
+  port: 5432
+  name: image_relevance
+  user: image_user
+  password: image_pass
+  migrations:
+    - src/db/migrations/001_create_images.sql
+    - src/db/migrations/002_create_image_embeddings.sql
+    - src/db/migrations/003_create_posts.sql
+    - src/db/migrations/004_create_post_embeddings.sql
+    - src/db/migrations/005_create_suggestions.sql
+    - src/db/migrations/006_create_cost_log.sql
+
+# Status
+status:
+  phase1: complete
+  phase2: not_started
+  phase3: not_started
+  phase4: not_started
