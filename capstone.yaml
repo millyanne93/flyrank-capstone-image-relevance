@@ -1,10 +1,9 @@
-
 # FlyRank Capstone - AI Image Understanding & Content Matching Engine
-# Phase 3: Matching Engine & Mismatch Guard (In Progress)
+# Phase 4: Production Layer Complete ✅
 
 name: flyrank-capstone-image-relevance
-version: 3.0.0
-phase: 3
+version: 4.0.0
+phase: 4
 
 # Run commands
 run:
@@ -24,6 +23,11 @@ batch:
 # Test guard (no API needed)
 test_guard:
   command: npx tsx scripts/testGuard.ts
+
+# Eval Set
+eval:
+  path: data/eval-set.json
+  precision_command: npx tsx scripts/computePrecision.ts
 
 # Base URL for API
 base_url: http://localhost:3000
@@ -65,9 +69,50 @@ endpoints:
     method: GET
     expected_status: 200
 
+# Database schema
+database:
+  host: localhost
+  port: 5432
+  name: image_relevance
+  user: image_user
+  password: image_pass
+  migrations:
+    - src/db/migrations/001_create_images.sql
+    - src/db/migrations/002_create_image_embeddings.sql
+    - src/db/migrations/003_create_posts.sql
+    - src/db/migrations/004_create_post_embeddings.sql
+    - src/db/migrations/005_create_suggestions.sql
+    - src/db/migrations/006_create_cost_log.sql
+
+# Features implemented
+features:
+  phase1:
+    - Design document
+    - Database schema (6 tables)
+    - 50-image corpus
+    - Sample posts
+  phase2:
+    - Vision pipeline with Gemini Flash
+    - Structured output validation
+    - Batch processing with retries
+    - Cost tracking per call
+    - Low-confidence flagging
+    - Stale job recovery
+  phase3:
+    - Mismatch guard (fox/wolf/dog rejection)
+    - Cosine similarity matching
+    - Post creation API
+    - Review API (approve/reject)
+    - Suggestions table
+  phase4:
+    - Eval set (labeled pairs)
+    - Precision computation script
+    - Complete documentation
+    - Architecture diagram
+
 # Status
 status:
   phase1: complete
   phase2: complete
-  phase3: in_progress
-  phase4: not_started
+  phase3: complete
+  phase4: complete

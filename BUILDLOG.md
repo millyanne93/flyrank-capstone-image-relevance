@@ -29,6 +29,8 @@
 2. The Alpine PostgreSQL image has user creation quirks
 3. `tsx` is the simplest way to run TypeScript without extra config
 
+---
+
 ## Phase 2: Vision Pipeline
 
 ### AI Tools Used
@@ -76,11 +78,12 @@
 | Stale recovery | ✅ Implemented | Recovers stuck `processing` jobs |
 
 ### Quota Status
-- **Model**: gemini-3.6-flash
+- **Model**: gemini-2.5-flash
 - **Daily Limit**: 20 requests/day
 - **Used**: 1 (bear-001.jpg successfully tagged)
 - **Remaining**: Wait for daily reset
 
+---
 
 ## Phase 3: Matching Engine & Mismatch Guard
 
@@ -96,7 +99,7 @@
 | src/services/mismatchGuard.service.ts | Guard logic with category/subject/similarity rules | Added threshold config |
 | src/services/matching.service.ts | Cosine similarity + candidate ranking | Added suggestion storage |
 | src/repositories/suggestions.repository.ts | Review queue operations | Added join with posts/images |
-| strc/routes/posts.routes.ts | Post CRUD + matching endpoint | Added embedding generation |
+| src/routes/posts.routes.ts | Post CRUD + matching endpoint | Added embedding generation |
 
 ### Phase 3 Status
 
@@ -107,3 +110,51 @@
 | Suggestions table | ✅ Working | Database queries work |
 | Review API | ✅ Implemented | Approve/reject endpoints |
 
+---
+
+## Phase 4: Production Layer
+
+### AI Tools Used
+- **Tool**: Claude (via web interface)
+- **Purpose**: Documentation, eval set, precision script
+- **Frequency**: Light usage during Phase 4
+
+### Where AI Helped
+
+| File/Component | What AI Provided | My Changes |
+|----------------|------------------|------------|
+| data/eval-set.json | Eval set structure | Added labeled pairs |
+| scripts/computePrecision.ts | Precision computation script | Added detailed logging |
+| README.md | Complete documentation | Added architecture diagram, API docs |
+| EVIDENCE.md | Phase 4 proof | Added precision results |
+
+
+### Phase 4 Status
+
+| Feature | Status | Evidence |
+|---------|--------|----------|
+| Eval set | ✅ Complete | 10 labeled pairs |
+| Precision script | ✅ Complete | Computes top-1 precision |
+| README | ✅ Complete | Architecture diagram + docs |
+| EVIDENCE.md | ✅ Complete | All proofs documented |
+
+---
+
+## AI Usage Summary (Final)
+
+| Metric | Value |
+|--------|-------|
+| Total AI-assisted files | 20+ |
+| AI code generation % | ~65% |
+| Manual fixes/adaptations | ~35% |
+| Time saved by AI | ~50% |
+| Bugs introduced by AI | 6 |
+| Bugs caught by human review | 6 |
+| Bugs in production | 0 |
+
+### Key Takeaways
+1. AI is excellent for boilerplate and architecture suggestions
+2. Always validate AI-generated code with tests
+3. Rate limits are a real production concern
+4. Structured output with Zod is critical for AI reliability
+5. The mismatch guard is the most important safety feature
