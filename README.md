@@ -9,7 +9,7 @@ An AI-powered backend system that automatically analyzes images, generates struc
 The system also includes a **mismatch guard** that rejects obviously incorrect matches and provides an explanation for the rejection.
 
 ---
-
+**Live Demo:** [Watch the demo walkthrough](https://youtu.be/IalU2j9yYps)
 ## Table of Contents
 
 - [Overview](#overview)
@@ -674,6 +674,7 @@ This project demonstrates practical backend engineering and AI integration skill
 
 # Acknowledgments
 
-Built as part of the **FlyRank Backend Internship Capstone**.
-
+Built as part of the FlyRank Backend Internship Capstone. Built with Claude as a
+development partner throughout — see [BUILDLOG.md](BUILDLOG.md) for the full
+log of where AI helped, where it got things wrong, and what I fixed myself.
 Special thanks to the FlyRank team for the capstone brief, technical guidance, and feedback.
