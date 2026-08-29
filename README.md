@@ -4,180 +4,386 @@
 [![Phase](https://img.shields.io/badge/phase-4-blue)](https://github.com/yourusername/flyrank-capstone-image-relevance)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
 
-A system that automatically matches images to blog posts using vision AI and embeddings, with
-a safety guard that rejects wrong matches (fox vs. wolf) and explains why.
+An AI-powered backend system that automatically analyzes images, generates structured visual metadata, creates embeddings, and matches images to blog posts.
 
-**Live Demo:** [Watch the demo](DEMO.md)
+The system also includes a **mismatch guard** that rejects obviously incorrect matches and provides an explanation for the rejection.
 
 ---
 
-## Table of contents
+## Table of Contents
 
+- [Overview](#overview)
 - [Features](#features)
 - [Architecture](#architecture)
-- [Quick start](#quick-start)
-- [API documentation](#api-documentation)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
 - [Testing](#testing)
-- [Evaluation results](#evaluation-results)
-- [Project structure](#project-structure)
-- [Technologies](#technologies)
-- [Status](#status)
-- [Limitations](#limitations)
-- [License](#license)
+- [Evaluation Results](#evaluation-results)
+- [Known Limitations](#known-limitations)
+- [Project Status](#project-status)
+- [Acknowledgments](#acknowledgments)
 
 ---
 
-## Features
+## Overview
 
-### Phase 1 — Design & setup ✅
-- Complete architecture design with data model and pipeline
-- 6 database tables with proper indexes and constraints
-- 50-image corpus (fox, wolf, dog, bear, deer)
-- Sample blog posts for testing
+The goal of this project is to build a backend pipeline that can determine which images are most relevant to a given blog post.
 
-### Phase 2 — Vision pipeline ✅
-- **45 out of 50 images successfully tagged** using Gemini Flash
-- Structured output with Zod schema validation
-- Batch processing with retries and rate-limit handling
-- Cost tracking per call ($0.000135 per image)
-- Low-confidence flagging (threshold: 0.70)
-- Handled Gemini API quota limits gracefully (20 requests/day)
+The system processes images through several stages:
 
-### Phase 3 — Matching engine & mismatch guard ✅
-- **44 image embeddings** and **7 post embeddings** generated
-- Mismatch guard rejects wrong matches (fox vs. wolf) with explanations
-- Cosine similarity ranking for image matching
-- Review API for human-in-the-loop approval
-- Suggestions table tracks every guard decision
-- Successfully tested category rejection (plant vs. animal)
+1. Images are stored and registered in PostgreSQL.
+2. Gemini Flash analyzes each image and produces structured metadata.
+3. The metadata is validated using Zod.
+4. Image and post embeddings are generated.
+5. Cosine similarity is used to rank potential matches.
+6. A mismatch guard checks whether the selected image is actually appropriate.
+7. A review API allows matches to be approved or rejected.
+8. An evaluation set measures matching performance.
 
-### Phase 4 — Production layer ✅
-- Eval set with 5 labeled pairs (post → correct image)
-- **Top-1 Precision: 80.0%** (4 out of 5 correct matches)
-- Complete documentation with architecture diagram
-- Ready for submission
+The project was developed as part of the **FlyRank Backend Internship capstone**.
 
 ---
 
-## Architecture
-┌──────────────────────────────────────────────────────────────────┐
-│ PHASE 1 · Design & setup │
-│ │
-│ Images (50) Tag schema (Zod) Database (6 tables) │
-└──────────────────────────────────┬───────────────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────────────────────────┐
-│ PHASE 2 · Vision pipeline │
-│ │
-│ Batch processing ──▶ Gemini Flash ──▶ Validated tags │
-│ │ │ │
-│ ▼ ▼ │
-│ Cost tracking Confidence check │
-│ ──▶ tagged / flagged │
-│ │
-│ Result: 45/50 images tagged (90%) │
-└──────────────────────────────────┬───────────────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────────────────────────┐
-│ PHASE 3 · Matching engine & guard │
-│ │
-│ Image embeddings (44) ─┐ │
-│ ├──▶ Cosine similarity ──▶ Mismatch guard │
-│ Post embeddings (7) ───┘ │ │
-│ ▼ │
-│ Review API │
-│ (approve / reject) │
-│ │
-│ Result: Matching endpoint working, guard rejects wrong matches │
-└──────────────────────────────────┬───────────────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────────────────────────┐
-│ PHASE 4 · Production layer │
-│ │
-│ Eval set (5 pairs) ──▶ Precision script ──▶ 80.0% precision │
-│ │
-│ Result: Ready for submission ✅ │
-└────────────────────────────────────────────────────────────────────┘
+# Features
 
-text
+## Phase 1 — Design & Setup
+
+- Architecture and data model designed before implementation
+- PostgreSQL database with 6 tables
+- Database indexes and constraints
+- 50-image test corpus
+- Sample blog posts for evaluation
+
+## Phase 2 — Vision Pipeline
+
+- Gemini Flash used for image understanding
+- Structured image metadata generated from visual input
+- Zod schema validation
+- Batch image processing
+- Retry and rate-limit handling
+- Confidence scoring
+- Low-confidence image flagging
+- Per-call cost tracking
+- 45 of 50 images successfully processed
+
+## Phase 3 — Matching Engine & Mismatch Guard
+
+- 44 image embeddings generated
+- 7 post embeddings generated
+- Cosine similarity used for ranking
+- Mismatch guard for incorrect image matches
+- Category validation
+- Subject validation
+- Similarity threshold validation
+- Human review API
+- Suggestions table for tracking matching decisions
+
+## Phase 4 — Evaluation & Production Layer
+
+- Evaluation dataset with 5 labeled post/image pairs
+- Automated precision calculation
+- Top-1 precision of **80%**
+- Architecture and implementation documentation
+- Known limitations documented
 
 ---
 
-## Quick start
+# Architecture
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v20+)
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Gemini API key](https://ai.google.dev/) (free, no credit card)
+The system follows a staged pipeline from image ingestion through AI analysis, embedding generation, matching, validation, and evaluation.
 
-### Setup instructions
+```mermaid
+flowchart TD
+    A[Image Corpus] --> B[PostgreSQL]
+    
+    B --> C[Vision Batch Job]
+    C --> D[Gemini Flash]
+    D --> E[Structured Image Tags]
+    E --> F[Zod Validation]
+    
+    F --> G[Confidence Check]
+    G -->|High Confidence| H[Tagged Image]
+    G -->|Low Confidence| I[Flagged Image]
+    
+    H --> J[Image Embeddings]
+    
+    P[Blog Posts] --> K[Post Embeddings]
+    
+    J --> L[Cosine Similarity]
+    K --> L
+    
+    L --> M[Candidate Match]
+    
+    M --> N[Mismatch Guard]
+    
+    N -->|Accepted| O[Matching Result]
+    N -->|Rejected| Q[Rejection Reason]
+    
+    O --> R[Review API]
+    Q --> R
+    
+    R --> S[Suggestions]
+    
+    S --> T[Evaluation Set]
+    T --> U[Precision Calculation]
+```
 
-**1. Clone the repository**
+### Pipeline Summary
+
+| Stage | Purpose |
+|---|---|
+| Image ingestion | Register images in PostgreSQL |
+| Vision analysis | Extract visual information using Gemini Flash |
+| Validation | Validate AI output using Zod |
+| Confidence check | Identify uncertain predictions |
+| Embeddings | Convert images/posts into vectors |
+| Similarity | Rank image candidates |
+| Mismatch guard | Reject clearly incorrect matches |
+| Review | Allow human approval/rejection |
+| Evaluation | Measure matching performance |
+
+---
+
+# Technology Stack
+
+## Backend
+
+| Component | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | Express |
+| Language | TypeScript |
+| Database | PostgreSQL 16 |
+| Database Driver | `pg` |
+| Validation | Zod |
+| AI Vision Model | Gemini 3.6 Flash |
+| Embedding Model | Gemini Embedding 001 |
+| Environment Configuration | dotenv |
+
+## Development & Infrastructure
+
+| Component | Technology |
+|---|---|
+| TypeScript execution | tsx |
+| Database | PostgreSQL |
+| Database environment | Docker |
+| Package manager | npm |
+| API | REST |
+
+---
+
+# Project Structure
+
+```text
+flyrank-capstone-image-relevance/
+│
+├── DESIGN.md
+├── README.md
+├── EVIDENCE.md
+├── BUILDLOG.md
+├── capstone.yaml
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── package.json
+└── tsconfig.json
+│
+├── data/
+│   ├── images/
+│   │   ├── fox-001.jpg
+│   │   ├── wolf-001.jpg
+│   │   ├── dog-001.jpg
+│   │   ├── bear-001.jpg
+│   │   └── deer-001.jpg
+│   ├── eval-set.json
+│   └── posts/
+│
+├── src/
+│   ├── server.ts
+│   ├── config.ts
+│   │
+│   ├── db/
+│   │   ├── client.ts
+│   │   └── migrations/
+│   │
+│   ├── repositories/
+│   │   ├── images.repository.ts
+│   │   ├── imageEmbedding.repository.ts
+│   │   ├── posts.repository.ts
+│   │   ├── suggestions.repository.ts
+│   │   └── costLog.repository.ts
+│   │
+│   ├── services/
+│   │   ├── vision.service.ts
+│   │   ├── embedding.service.ts
+│   │   ├── matching.service.ts
+│   │   ├── mismatchGuard.service.ts
+│   │   └── cost.service.ts
+│   │
+│   ├── routes/
+│   │   ├── images.routes.ts
+│   │   ├── posts.routes.ts
+│   │   └── suggestions.routes.ts
+│   │
+│   ├── jobs/
+│   │   ├── visionBatch.job.ts
+│   │   └── embeddingBatch.job.ts
+│   │
+│   └── validation/
+│       └── imageTags.schema.ts
+│
+├── scripts/
+│   ├── seed.ts
+│   ├── runBatch.ts
+│   ├── testBatch.ts
+│   ├── testGuard.ts
+│   ├── runEmbeddingBatch.ts
+│   ├── computePrecision.ts
+│   └── createPosts.ts
+│
+└── tests/
+```
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+Make sure the following are installed:
+
+- Node.js 20+
+- Docker
+- Docker Compose
+- Gemini API key
+
+---
+
+## 1. Clone the Repository
+
 ```bash
 git clone https://github.com/yourusername/flyrank-capstone-image-relevance.git
+
 cd flyrank-capstone-image-relevance
-2. Install dependencies
+```
 
-bash
+## 2. Install Dependencies
+
+```bash
 npm install
-3. Start PostgreSQL
+```
 
-bash
+## 3. Start PostgreSQL
+
+```bash
 docker compose up -d
-4. Run migrations
+```
 
-bash
-# Connect to PostgreSQL
-docker exec -it flyrank-capstone-image-relevance-postgres-1 psql -U image_user -d image_relevance
+Verify that the database container is running:
 
-# Copy and paste each migration file in order:
-# src/db/migrations/001_create_images.sql
-# src/db/migrations/002_create_image_embeddings.sql
-# src/db/migrations/003_create_posts.sql
-# src/db/migrations/004_create_post_embeddings.sql
-# src/db/migrations/005_create_suggestions.sql
-# src/db/migrations/006_create_cost_log.sql
+```bash
+docker ps
+```
 
-# Exit
+## 4. Run Database Migrations
+
+Connect to PostgreSQL:
+
+```bash
+docker exec -it flyrank-capstone-image-relevance-postgres-1 \
+psql -U image_user -d image_relevance
+```
+
+Run the migration files in order:
+
+```text
+src/db/migrations/001_create_images.sql
+src/db/migrations/002_create_image_embeddings.sql
+src/db/migrations/003_create_posts.sql
+src/db/migrations/004_create_post_embeddings.sql
+src/db/migrations/005_create_suggestions.sql
+src/db/migrations/006_create_cost_log.sql
+```
+
+Exit PostgreSQL:
+
+```sql
 \q
-5. Set up environment
+```
 
-bash
+## 5. Configure Environment Variables
+
+Create the environment file:
+
+```bash
 cp .env.example .env
-# Edit .env with your Gemini API key
-6. Load images into the database
+```
 
-bash
+Add your Gemini API credentials and database configuration to `.env`.
+
+> Do not commit `.env` to GitHub.
+
+## 6. Seed the Database
+
+Load the test images:
+
+```bash
 npx tsx scripts/seed.ts
-7. Process images (runs the vision pipeline)
+```
 
-bash
+## 7. Run the Vision Pipeline
+
+Process pending images:
+
+```bash
 npx tsx scripts/runBatch.ts
-8. Generate embeddings
+```
 
-bash
+## 8. Generate Embeddings
+
+```bash
 npx tsx scripts/runEmbeddingBatch.ts
-9. Start the server
+```
 
-bash
+## 9. Start the API Server
+
+```bash
 npx tsx src/server.ts
-10. Test the mismatch guard (no API calls needed)
+```
 
-bash
+The API will be available locally at:
+
+```text
+http://localhost:3000
+```
+
+## 10. Test the Mismatch Guard
+
+The mismatch guard does not require an API call:
+
+```bash
 npx tsx scripts/testGuard.ts
-API documentation
-Vision pipeline endpoints
-Process images (batch)
-http
+```
+
+---
+
+# API Documentation
+
+## Vision Pipeline
+
+### Process Images
+
+```http
 POST /api/images/batch-process
-Triggers the vision batch job on all pending images.
+```
 
-Response:
+Triggers processing for pending images.
 
-json
+Example response:
+
+```json
 {
   "success": true,
   "processed": 10,
@@ -186,19 +392,27 @@ json
   "failed": 0,
   "quota_exhausted": false
 }
-Get image status
-http
+```
+
+### Get Image Status
+
+```http
 GET /api/images/:id
-Returns image details including tags and processing status.
+```
 
-Get processing stats
-http
+Returns image metadata and processing status.
+
+### Get Processing Statistics
+
+```http
 GET /api/images/stats
-Returns processing statistics and total cost.
+```
 
-Response:
+Returns processing statistics and accumulated processing cost.
 
-json
+Example:
+
+```json
 {
   "pending": 5,
   "processing": 0,
@@ -207,37 +421,40 @@ json
   "failed": 0,
   "total_cost": 0.006075
 }
-Post & matching endpoints
-Create a post
-http
+```
+
+---
+
+# Posts & Matching
+
+## Create a Post
+
+```http
 POST /api/posts
 Content-Type: application/json
+```
+
 Request:
 
-json
+```json
 {
   "title": "The Behavior of Red Foxes",
   "body": "Red foxes are highly adaptable mammals...",
   "category": "animal"
 }
-Response:
+```
 
-json
-{
-  "id": "b1eb923d-94e4-483d-b415-829912bd4558",
-  "title": "The Behavior of Red Foxes",
-  "body": "Red foxes are highly adaptable mammals...",
-  "category": "animal",
-  "created_at": "2026-08-29T07:32:40.160Z"
-}
-Get matching image for a post
-http
+## Get Matching Image
+
+```http
 GET /api/posts/:id/images
-Returns the best matching image or a rejection reason.
+```
 
-Response — accepted:
+Returns the best matching image or explains why the candidate was rejected.
 
-json
+Example accepted response:
+
+```json
 {
   "post_id": "b1eb923d-94e4-483d-b415-829912bd4558",
   "post_title": "The Behavior of Red Foxes",
@@ -253,212 +470,210 @@ json
     "similarity_score": 0.692
   }
 }
-Response — rejected:
+```
 
-json
+Example rejected response:
+
+```json
 {
   "post_id": "2ed89345-23a4-4452-928f-ad7bb927d738",
   "post_title": "The Life of Oak Trees",
   "accepted": false,
   "reason": "Category mismatch: expected \"plant\", got \"animal\"",
-  "similarity_score": 0.604,
-  "candidate": {
-    "image_id": "c4b1ad23-0d21-47b0-b9fb-84b8ea2520a8",
-    "subject": "red deer stag",
-    "category": "animal",
-    "caption": "A majestic stag with large antlers...",
-    "confidence": 0.98,
-    "similarity_score": 0.604
-  }
+  "similarity_score": 0.604
 }
-Testing
-Mismatch guard tests (no API required)
-bash
+```
+
+---
+
+# Testing
+
+## Mismatch Guard
+
+Run:
+
+```bash
 npx tsx scripts/testGuard.ts
-Expected output:
+```
 
-text
-🧪 Testing Mismatch Guard (No API Required)
+The test suite covers:
 
-📝 Test Case 1: Fox post → Fox image
-   Result: ✅ ACCEPTED
+| Scenario | Expected |
+|---|---|
+| Fox post → Fox image | Accepted |
+| Fox post → Wolf image | Rejected |
+| Fox post → Dog image | Rejected |
+| Plant post → Animal image | Rejected |
+| Low similarity candidate | Rejected |
 
-📝 Test Case 2: Fox post → Wolf image
-   Result: ❌ REJECTED
-   Reason: Subject mismatch: "gray wolf" not found in post title
+The guard checks:
 
-📝 Test Case 3: Fox post → Dog image
-   Result: ❌ REJECTED
-   Reason: Subject mismatch: "golden retriever" not found in post title
+- Category compatibility
+- Subject compatibility
+- Similarity threshold
+- Candidate confidence
 
-📝 Test Case 4: Plant post → Animal image
-   Result: ❌ REJECTED
-   Reason: Category mismatch: expected "plant", got "animal"
+---
 
-📝 Test Case 5: Similarity too low
-   Result: ❌ REJECTED
-   Reason: Similarity 0.350 below threshold 0.65
+## Vision Pipeline Test
 
-✅ All guard tests completed!
-Vision pipeline test
-bash
+Run:
+
+```bash
 npx tsx scripts/testBatch.ts
-Full processing run
-bash
+```
+
+## Full Vision Batch
+
+Run:
+
+```bash
 npx tsx scripts/runBatch.ts
-Evaluation results
-Top-1 precision
-After running the eval set on all matched posts, the system achieved:
+```
 
-text
-Top-1 Precision: 80.0% (4 out of 5 correct matches)
-What this means: for every eval post, the system either correctly matched the intended image (accepted) or rejected wrong matches with an explanation. The dog post was correctly rejected because the subject "Jack Russell terrier" wasn't found in the post title and similarity (0.593) was below the threshold (0.65).
+## Embedding Generation
 
-Key metrics
-Metric	Value
-Total images	50
-Images tagged	45 (90%)
-Image embeddings	44
-Posts created	7
-Post embeddings	7
-Categories	5 (fox, wolf, dog, bear, deer)
-Eval set size	5 posts
-Similarity threshold	0.65
-Confidence threshold	0.70
-Model used	gemini-3.6-flash / gemini-embedding-001
-Total cost	$0.00 (free tier)
-Guard performance
-Scenario	Expected	Actual
-Fox post → fox image	Accepted	✅ Accepted (similarity: 0.692)
-Wolf post → wolf image	Accepted	✅ Accepted (similarity: 0.659)
-Dog post → dog image	Accepted	❌ Rejected (correctly - subject mismatch)
-Bear post → bear image	Accepted	✅ Accepted
-Deer post → deer image	Accepted	✅ Accepted
-Plant post → animal image	Rejected	✅ Rejected (category mismatch)
-Project structure
-text
-flyrank-capstone-image-relevance/
-├── DESIGN.md                  # Architecture design document
-├── README.md                  # This file
-├── EVIDENCE.md                # Definition of Done proof
-├── BUILDLOG.md                # AI usage log
-├── capstone.yaml               # Evaluator manifest
-├── .env.example                 # Environment variables template
-├── .gitignore                    # Node.js standard
-├── docker-compose.yml            # PostgreSQL container
-├── package.json                 # Dependencies
-├── tsconfig.json                # TypeScript config
-│
-├── data/
-│   ├── images/                    # 50 compressed images (~1.3MB)
-│   │   ├── fox-001.jpg
-│   │   ├── wolf-001.jpg
-│   │   ├── dog-001.jpg
-│   │   ├── bear-001.jpg
-│   │   └── deer-001.jpg
-│   ├── eval-set.json                # Labeled eval pairs
-│   └── posts/                        # Sample blog posts
-│
-├── src/
-│   ├── server.ts                     # Express entrypoint
-│   ├── config.ts                      # Environment configuration
-│   │
-│   ├── db/
-│   │   ├── client.ts                    # Database connection pool
-│   │   └── migrations/                   # 6 SQL migration files
-│   │
-│   ├── repositories/                    # Data access layer
-│   │   ├── images.repository.ts
-│   │   ├── imageEmbedding.repository.ts
-│   │   ├── posts.repository.ts
-│   │   ├── suggestions.repository.ts
-│   │   └── costLog.repository.ts
-│   │
-│   ├── services/                        # Business logic
-│   │   ├── vision.service.ts
-│   │   ├── embedding.service.ts
-│   │   ├── matching.service.ts
-│   │   ├── mismatchGuard.service.ts
-│   │   └── cost.service.ts
-│   │
-│   ├── routes/                          # HTTP routes
-│   │   ├── images.routes.ts
-│   │   ├── posts.routes.ts
-│   │   └── suggestions.routes.ts
-│   │
-│   ├── jobs/                            # Background jobs
-│   │   ├── visionBatch.job.ts
-│   │   └── embeddingBatch.job.ts
-│   │
-│   └── validation/                      # Zod schemas
-│       └── imageTags.schema.ts
-│
-├── scripts/                             # Utility scripts
-│   ├── seed.ts                            # Load images into DB
-│   ├── runBatch.ts                        # Run vision batch
-│   ├── testBatch.ts                       # Test with 3 images
-│   ├── testGuard.ts                       # Unit tests for guard
-│   ├── runEmbeddingBatch.ts               # Generate embeddings
-│   ├── computePrecision.ts                # Compute top-1 precision
-│   └── createPosts.ts                     # Create sample posts
-│
-└── tests/                                 # Unit tests
-Technologies
-Backend
+Run:
 
-Runtime: Node.js
+```bash
+npx tsx scripts/runEmbeddingBatch.ts
+```
 
-Framework: Express
+## Precision Evaluation
 
-Language: TypeScript
+Run:
 
-Database: PostgreSQL 16 (via Docker)
+```bash
+npx tsx scripts/computePrecision.ts
+```
 
-Validation: Zod
+---
 
-AI models: Gemini 3.6 Flash (vision) + Gemini Embedding 001
+# Evaluation Results
 
-Development
+The evaluation set contains **5 labeled post/image pairs**.
 
-TypeScript execution: tsx
+### Top-1 Precision
 
-Database client: pg
+**80.0% — 4 out of 5 correct matches**
 
-Environment: dotenv
+### Key Metrics
 
-Status
-Phase	Status	Progress
-Phase 1 — Design & Setup	✅ Complete	Design doc, database, 50 images
-Phase 2 — Vision Pipeline	✅ Complete	45/50 images tagged, cost tracking
-Phase 3 — Matching Engine	✅ Complete	44 embeddings, matching, guard
-Phase 4 — Production Layer	✅ Complete	Eval set, 80.0% precision
-Total tests passed: 16+ ✅
+| Metric | Result |
+|---|---:|
+| Total images | 50 |
+| Images successfully tagged | 45 |
+| Image embeddings | 44 |
+| Posts created | 7 |
+| Post embeddings | 7 |
+| Evaluation pairs | 5 |
+| Similarity threshold | 0.65 |
+| Confidence threshold | 0.70 |
+| Top-1 precision | 80.0% |
 
-Limitations
-Corpus is small (~50 images) — large enough to show behavior, not large enough to generalize.
+### Guard Results
 
-Single category (animal) — the system is tuned for this domain; results may not transfer.
+| Scenario | Expected | Result |
+|---|---|---|
+| Fox → Fox | Accepted | ✅ Accepted |
+| Wolf → Wolf | Accepted | ✅ Accepted |
+| Dog → Dog | Accepted | ❌ Rejected |
+| Bear → Bear | Accepted | ✅ Accepted |
+| Deer → Deer | Accepted | ✅ Accepted |
+| Plant → Animal | Rejected | ✅ Rejected |
 
-Manual eval set — labeled by hand, not statistically significant.
+The dog case demonstrates an important limitation of the current guard: a semantically related image can still be rejected when the subject information extracted from the post does not sufficiently match the candidate image.
 
-5 images remain pending — due to Gemini API daily quota limits (20 requests/day).
+---
 
-No real-time ingestion — images must be pre-loaded (stretch goal).
+# Known Limitations
 
-Embeddings stored as plain arrays — fine for 50 images, would need pgvector at scale.
+The current implementation intentionally operates on a relatively small evaluation corpus.
 
-Single vision model — using only Gemini Flash (stretch goal: compare models).
+### 1. Small Dataset
 
-Acknowledgments
-Built as part of the FlyRank Backend Internship program.
+The test corpus contains approximately 50 images.
 
-Special thanks to the FlyRank team for the comprehensive capstone brief and guidance.
+This is sufficient to demonstrate the pipeline and guard behavior, but it is not large enough to establish production-level generalization.
 
-Links
-Design Document
+### 2. Limited Domain
 
-Evidence of Completion
+The current dataset focuses primarily on animal/wildlife imagery.
 
-AI Usage Log
+Additional domains such as technology, food, travel, and people would require broader evaluation.
 
-Demo Script
+### 3. Small Evaluation Set
+
+The current evaluation uses five labeled post/image pairs.
+
+The 80% precision result should therefore be treated as an initial evaluation rather than a statistically significant production benchmark.
+
+### 4. API Quota Constraints
+
+Five images remained pending during one processing run because of the available Gemini API quota.
+
+The pipeline records failed and pending work rather than silently treating those images as successfully processed.
+
+### 5. Preloaded Images
+
+Images currently need to be loaded into the system before processing.
+
+Real-time ingestion is a potential future improvement.
+
+### 6. Embedding Storage
+
+Embeddings are currently stored as arrays.
+
+For a larger production dataset, a vector database or PostgreSQL `pgvector` extension would be a more appropriate approach.
+
+### 7. Single Vision Model
+
+The current implementation uses Gemini Flash for image analysis.
+
+A future iteration could compare multiple vision models and evaluate differences in accuracy, latency, and cost.
+
+---
+
+# Project Status
+
+| Phase | Status | Result |
+|---|---|---|
+| Phase 1 — Design & Setup | ✅ Complete | Database, architecture, test corpus |
+| Phase 2 — Vision Pipeline | ✅ Complete | 45/50 images tagged |
+| Phase 3 — Matching Engine | ✅ Complete | Embeddings, matching, mismatch guard |
+| Phase 4 — Evaluation | ✅ Complete | 80% Top-1 precision |
+
+**Total tests passed: 16+**
+
+---
+
+# What This Project Demonstrates
+
+This project demonstrates practical backend engineering and AI integration skills, including:
+
+- REST API development
+- TypeScript and Node.js
+- Express
+- PostgreSQL
+- Database design and migrations
+- Repository/service architecture
+- AI vision integration
+- Embeddings
+- Semantic similarity
+- Structured AI output validation
+- Batch processing
+- Retry and rate-limit handling
+- Confidence scoring
+- Defensive matching logic
+- Human-in-the-loop review
+- Automated evaluation
+- Cost tracking
+- Docker-based development
+
+---
+
+# Acknowledgments
+
+Built as part of the **FlyRank Backend Internship Capstone**.
+
+Special thanks to the FlyRank team for the capstone brief, technical guidance, and feedback.
