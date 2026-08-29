@@ -1,4 +1,4 @@
-DENCE.md - Definition of Done Proof
+  # EVIDENCE.md - Definition of Done Proof
 
 ## Phase 1: Design & Setup ✅
 
