@@ -16,7 +16,7 @@ export const config = {
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
     visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3.6-flash',
-    embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004',
+    embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
   },
   
   thresholds: {

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createPost, getPostById } from '../repositories/posts.repository';
+import { createPost, getPostById, getAllPosts } from '../repositories/posts.repository';
 import { generateEmbedding } from '../services/embedding.service';
 import { savePostEmbedding } from '../repositories/posts.repository';
 import { findBestMatch } from '../services/matching.service';
@@ -23,13 +23,24 @@ router.post('/api/posts', async (req: Request, res: Response) => {
             await savePostEmbedding(post.id, embedding);
             console.log(`Embedding generated for post: ${post.title}`);
         } catch (error) {
-            console.log(`Embedding generation failed for post: ${post.title}`);
+            console.log(`Embedding generation failed for post: ${post.title}`, error);
         }
 
         res.status(201).json(post);
     } catch (error) {
         console.error('Failed to create post:', error);
         res.status(500).json({ error: 'Failed to create post' });
+    }
+});
+
+router.get('/api/posts', async (req: Request, res: Response) => {
+    try {
+        const { getAllPosts } = await import('../repositories/posts.repository');
+        const posts = await getAllPosts();
+        res.json(posts);
+    } catch (error) {
+        console.error('Failed to get posts:', error);
+        res.status(500).json({ error: 'Failed to get posts' });
     }
 });
 

@@ -61,12 +61,12 @@
 ### Lessons Learned
 1. Always parse `cleanResponse` after removing markdown fences
 2. Gemini API keys start with `AIzaSy...` (not `sk-ant-api...`)
-3. Daily quota: 20 requests/day for gemini-2.5-flash free tier
+3. Daily quota: 20 requests/day for gemini-3.6-flash free tier
 4. Process small batches (2-3 images) to stay within quota
 5. Stale `processing` jobs need recovery after 10+ minutes
 6. Use UUIDs for database references, not file paths
 
-### Phase 2 Status
+### Phase 2 Results
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
@@ -76,12 +76,7 @@
 | Cost tracking | ✅ Working | $0.00013500 logged per call |
 | Low-confidence flagging | ✅ Working | Confidence threshold: 0.70 |
 | Stale recovery | ✅ Implemented | Recovers stuck `processing` jobs |
-
-### Quota Status
-- **Model**: gemini-2.5-flash
-- **Daily Limit**: 20 requests/day
-- **Used**: 1 (bear-001.jpg successfully tagged)
-- **Remaining**: Wait for daily reset
+| **Images Tagged** | ✅ **45/50 (90%)** | 5 pending due to quota |
 
 ---
 
@@ -100,8 +95,21 @@
 | src/services/matching.service.ts | Cosine similarity + candidate ranking | Added suggestion storage |
 | src/repositories/suggestions.repository.ts | Review queue operations | Added join with posts/images |
 | src/routes/posts.routes.ts | Post CRUD + matching endpoint | Added embedding generation |
+| src/services/embedding.service.ts | Embedding generation with Gemini | Fixed model name to `gemini-embedding-001` |
 
-### Phase 3 Status
+### Where AI Got It Wrong
+
+| Issue | What Happened | How I Fixed It |
+|-------|---------------|----------------|
+| Embedding model name | AI suggested `text-embedding-004` (deprecated) | Used `gemini-embedding-001` from API list |
+| UUID error in logCost | AI passed text instead of UUID | Changed to pass `referenceId` parameter |
+
+### Lessons Learned
+1. Gemini embedding models have specific naming: `gemini-embedding-001`
+2. Always check available models via the API: `curl "https://generativelanguage.googleapis.com/v1beta/models?key=$API_KEY"`
+3. The `embedContent` method requires a valid UUID for cost tracking
+
+### Phase 3 Results
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
@@ -109,6 +117,8 @@
 | Post creation | ✅ Working | API endpoint tested |
 | Suggestions table | ✅ Working | Database queries work |
 | Review API | ✅ Implemented | Approve/reject endpoints |
+| **Image Embeddings** | ✅ **44 generated** | Using `gemini-embedding-001` |
+| **Post Embeddings** | ✅ **7 generated** | All posts embedded |
 
 ---
 
@@ -123,38 +133,7 @@
 
 | File/Component | What AI Provided | My Changes |
 |----------------|------------------|------------|
-| data/eval-set.json | Eval set structure | Added labeled pairs |
+| data/eval-set.json | Eval set structure | Added 5 labeled pairs with correct filenames |
 | scripts/computePrecision.ts | Precision computation script | Added detailed logging |
-| README.md | Complete documentation | Added architecture diagram, API docs |
-| EVIDENCE.md | Phase 4 proof | Added precision results |
-
-
-### Phase 4 Status
-
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Eval set | ✅ Complete | 10 labeled pairs |
-| Precision script | ✅ Complete | Computes top-1 precision |
-| README | ✅ Complete | Architecture diagram + docs |
-| EVIDENCE.md | ✅ Complete | All proofs documented |
-
----
-
-## AI Usage Summary (Final)
-
-| Metric | Value |
-|--------|-------|
-| Total AI-assisted files | 20+ |
-| AI code generation % | ~65% |
-| Manual fixes/adaptations | ~35% |
-| Time saved by AI | ~50% |
-| Bugs introduced by AI | 6 |
-| Bugs caught by human review | 6 |
-| Bugs in production | 0 |
-
-### Key Takeaways
-1. AI is excellent for boilerplate and architecture suggestions
-2. Always validate AI-generated code with tests
-3. Rate limits are a real production concern
-4. Structured output with Zod is critical for AI reliability
-5. The mismatch guard is the most important safety feature
+| README.md | Complete documentation | Added architecture diagram, API docs, precision results |
+| EVIDENCE.md | Phase 4 proof | Added

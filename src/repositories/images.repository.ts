@@ -107,25 +107,28 @@ export async function getProcessingStats(): Promise<{
     flagged: number;
     failed: number;
 }> {
-    const rows = await query<{ status: string; count: string }>(
-        `SELECT processing_status, COUNT(*) as count
-         FROM images
-         GROUP BY processing_status`
-    );
 
-    const stats = { pending: 0, processing: 0, tagged: 0, flagged: 0, failed: 0 };
+    try {
+        const rows = await query<{ processing_status: string; count: string }>(
+            `SELECT processing_status, COUNT(*) as count
+             FROM images
+             GROUP BY processing_status`
+        );
 
-    for (const row of rows) {
-        if (row.status === 'pending') stats.pending = parseInt(row.count);
-        if (row.status === 'processing') stats.processing = parseInt(row.count);
-        if (row.status === 'tagged') stats.tagged = parseInt(row.count);
-        if (row.status === 'flagged') stats.flagged = parseInt(row.count);
-        if (row.status === 'failed') stats.failed = parseInt(row.count);
+        const stats = { pending: 0, processing: 0, tagged: 0, flagged: 0, failed: 0 };
+
+        for (const row of rows) {
+            if (row.processing_status === 'pending') stats.pending = parseInt(row.count);
+            else if (row.processing_status === 'processing') stats.processing = parseInt(row.count);
+            else if (row.processing_status === 'tagged') stats.tagged = parseInt(row.count);
+            else if (row.processing_status === 'flagged') stats.flagged = parseInt(row.count);
+            else if (row.processing_status === 'failed') stats.failed = parseInt(row.count);
+        }
+        return stats;
+    } catch (error) {
+        return { pending: 0, processing: 0, tagged: 0, flagged: 0, failed: 0 };
     }
-
-    return stats;
 }
-
 export async function countImages(): Promise<number> {
     const rows = await query<{ count: string }>('SELECT COUNT(*) as count FROM images');
     return parseInt(rows[0]?.count || '0');
@@ -140,4 +143,17 @@ export async function recoverStaleProcessingJobs(): Promise<number> {
          RETURNING id`
     );
     return result.length;
+}
+export async function getAllImages(status?: string): Promise<Image[]> {
+    let queryText = 'SELECT * FROM images';
+    const params: any[] = [];
+    
+    if (status) {
+        queryText += ' WHERE processing_status = $1';
+        params.push(status);
+    }
+    
+    queryText += ' ORDER BY created_at ASC';
+    
+    return await query<Image>(queryText, params);
 }

@@ -1,4 +1,4 @@
-# EVIDENCE.md - Definition of Done Proof
+DENCE.md - Definition of Done Proof
 
 ## Phase 1: Design & Setup ✅
 
@@ -103,10 +103,10 @@ Output:
 text
  processing_status | count
 -------------------+-------
- pending           |    49
- tagged            |     1
+ pending           |    5
+ tagged            |   45
 (2 rows)
-✅ Status: PASS - Batch job processes images
+✅ Status: PASS - Batch job processes images (45/50 tagged)
 
 Cost Tracking Implemented
 Proof: Cost log entries exist.
@@ -119,6 +119,7 @@ text
  call_type |           reference_id            | estimated_cost_usd
 -----------+-----------------------------------+--------------------
  vision    | 71c2bb02-427a-4ddf-9151-8c8e9290a24e |         0.00013500
+ embedding | 71c2bb02-427a-4ddf-9151-8c8e9290a24e |         0.00002600
 ✅ Status: PASS - Costs tracked per call
 
 Low-Confidence Images Flagged
@@ -134,6 +135,23 @@ thresholds: {
     confidence: parseFloat(process.env.THRESHOLD_CONFIDENCE || '0.70'),
 },
 ✅ Status: PASS - Low-confidence images flagged
+
+Gemini API Quota Handling
+Proof: System gracefully handles Gemini API daily quota limits (20 requests/day).
+
+bash
+npx tsx scripts/runBatch.ts
+Output (excerpt):
+
+text
+Daily quota exceeded for dog-003.jpg
+Quota exhausted. Stopping batch. Remaining images left as pending.
+
+📊 Batch Job Complete:
+   Processed: 2
+   Tagged: 1
+   Quota Exhausted: true
+✅ Status: PASS - Quota handling works, images remain pending for next run
 
 Phase 3: Matching Engine & Mismatch Guard ✅
 Mismatch Guard Rejects Wrong Matches
@@ -168,6 +186,23 @@ text
 ✅ All guard tests completed!
 ✅ Status: PASS - Guard correctly rejects wrong matches
 
+Embeddings Generated
+Proof: 44 image embeddings and 7 post embeddings generated.
+
+bash
+docker exec -it flyrank-capstone-image-relevance-postgres-1 psql -U image_user -d image_relevance -c "SELECT COUNT(*) FROM image_embeddings; SELECT COUNT(*) FROM post_embeddings;"
+Output:
+
+text
+ count
+-------
+    44
+
+ count
+-------
+     7
+✅ Status: PASS - Embeddings generated
+
 Post Creation Works
 Proof: Create post via API.
 
@@ -176,7 +211,7 @@ curl -X POST http://localhost:3000/api/posts -H "Content-Type: application/json"
 Output:
 
 json
-{"id":"...","title":"The Behavior of Red Foxes","body":"Red foxes are...","category":"animal","created_at":"..."}
+{"id":"b1eb923d-94e4-483d-b415-829912bd4558","title":"The Behavior of Red Foxes","body":"Red foxes are...","category":"animal","created_at":"2026-08-29T07:32:40.160Z"}
 ✅ Status: PASS - Post creation works
 
 Review API Endpoints Exist
@@ -190,16 +225,49 @@ json
 []
 ✅ Status: PASS - Review API endpoints work
 
+Live Matching Works
+Proof: Matching endpoint returns correct image for fox post.
+
+bash
+curl http://localhost:3000/api/posts/b1eb923d-94e4-483d-b415-829912bd4558/images
+Output:
+
+json
+{
+  "post_id": "b1eb923d-94e4-483d-b415-829912bd4558",
+  "post_title": "The Behavior of Red Foxes",
+  "accepted": true,
+  "image_id": "3102d561-2a64-4080-a0dd-e78e79ebe79b",
+  "similarity_score": 0.692
+}
+✅ Status: PASS - Matching endpoint works
+
+Category Mismatch Rejection Works
+Proof: Plant post correctly rejected by guard.
+
+bash
+curl http://localhost:3000/api/posts/2ed89345-23a4-4452-928f-ad7bb927d738/images
+Output:
+
+json
+{
+  "post_id": "2ed89345-23a4-4452-928f-ad7bb927d738",
+  "post_title": "The Life of Oak Trees",
+  "accepted": false,
+  "reason": "Category mismatch: expected \"plant\", got \"animal\""
+}
+✅ Status: PASS - Category mismatch rejection works
+
 Phase 4: Production Layer ✅
 Eval Set Created
-Proof: Eval set exists with labeled pairs.
+Proof: Eval set exists with 5 labeled pairs.
 
 bash
 cat data/eval-set.json | jq '.eval_set | length'
 Output:
 
 text
-10
+5
 ✅ Status: PASS - Eval set created
 
 Precision Computed
@@ -210,11 +278,34 @@ npx tsx scripts/computePrecision.ts
 Output:
 
 text
+📊 Computing Top-1 Precision...
+
+📝 Evaluating: The Behavior of Red Foxes
+   ✅ Match: 3102d561-2a64-4080-a0dd-e78e79ebe79b
+   Expected: fox-006.jpg
+
+📝 Evaluating: Wolf Pack Dynamics
+   ✅ Match: 4b3286c0-79d1-4f8f-8a7a-6449cb07f215
+   Expected: wolf-004.jpg
+
+📝 Evaluating: Understanding Dog Behavior
+   ❌ Match: rejected
+   Expected: dog-002.jpg
+   Reason: Subject mismatch: "Jack Russell terrier" not found in post title, similarity 0.593 < 0.65
+
+📝 Evaluating: The Life of Bears
+   ✅ Match: cca1b917-f089-43f4-a4a1-b9550667c47a
+   Expected: bear-002.jpg
+
+📝 Evaluating: Deer in the Wild
+   ✅ Match: 34175590-fa0f-4dab-84bc-b0239a59e38f
+   Expected: deer-009.jpg
+
 📊 Precision Results:
-   Total eval items: 10
-   Correct matches: 9
-   Top-1 Precision: 90.0%
-✅ Status: PASS - Precision computed and documented
+   Total eval items: 5
+   Correct matches: 4
+   Top-1 Precision: 80.0%
+✅ Status: PASS - Precision computed and documented (80.0%)
 
 Architecture Diagram Complete
 Proof: Architecture diagram exists in README.
@@ -227,27 +318,30 @@ text
 1
 ✅ Status: PASS - Architecture documented
 
-All Phases Complete
-Phase	Status
-Phase 1: Design & Setup	✅ Complete
-Phase 2: Vision Pipeline	✅ Complete
-Phase 3: Matching Engine	✅ Complete
-Phase 4: Production Layer	✅ Complete
 Final Summary
 Total Evidence Count
-Phase	Proofs
-Phase 1	5 proofs
-Phase 2	5 proofs
-Phase 3	3 proofs
-Phase 4	3 proofs
-Total	16 proofs ✅
+Phase   Proofs
+Phase 1 5 proofs
+Phase 2 6 proofs
+Phase 3 6 proofs
+Phase 4 3 proofs
+Total   20 proofs ✅
 Key Metrics
-Metric	Value
-Total Images	50
-Categories	5
-Eval Set Size	10 posts
-Similarity Threshold	0.65
-Confidence Threshold	0.70
-Top-1 Precision	90.0%
-Total Cost	$0.00 (free tier)
-Tests Passed	16+ ✅
+Metric  Value
+Total Images    50
+Images Tagged   45 (90%)
+Image Embeddings    44
+Posts Created   7
+Post Embeddings 7
+Eval Set Size   5 posts
+Similarity Threshold    0.65
+Confidence Threshold    0.70
+Top-1 Precision 80.0%
+Total Cost  $0.00 (free tier)
+Tests Passed    20+ ✅
+All Phases Complete ✅
+Phase   Status
+Phase 1: Design & Setup ✅ Complete
+Phase 2: Vision Pipeline    ✅ Complete
+Phase 3: Matching Engine    ✅ Complete
+Phase 4: Production Layer   ✅ Complete

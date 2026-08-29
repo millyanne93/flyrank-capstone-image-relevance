@@ -1,0 +1,46 @@
+{
+  "results": [
+    {
+      "post_id": "b1eb923d-94e4-483d-b415-829912bd4558",
+      "post_title": "The Behavior of Red Foxes",
+      "correct_image_filename": "fox-006.jpg",
+      "suggested_image": "3102d561-2a64-4080-a0dd-e78e79ebe79b",
+      "accepted": true,
+      "is_correct": true
+    },
+    {
+      "post_id": "d562485e-7ad1-4692-9098-60cbf57f20b8",
+      "post_title": "Wolf Pack Dynamics",
+      "correct_image_filename": "wolf-004.jpg",
+      "suggested_image": "4b3286c0-79d1-4f8f-8a7a-6449cb07f215",
+      "accepted": true,
+      "is_correct": true
+    },
+    {
+      "post_id": "682d4492-ee55-4f9b-86d9-868db945c97c",
+      "post_title": "Understanding Dog Behavior",
+      "correct_image_filename": "dog-002.jpg",
+      "suggested_image": "7836ba64-ca00-45b9-a271-b2c5059964dc",
+      "accepted": false,
+      "is_correct": false,
+      "reason": "Subject mismatch: \"Jack Russell terrier\" not found in post title, similarity 0.5931968677718977 < 0.65"
+    },
+    {
+      "post_id": "7834cfe3-f945-4e44-b5de-e96951fc537f",
+      "post_title": "The Life of Bears",
+      "correct_image_filename": "bear-002.jpg",
+      "suggested_image": "cca1b917-f089-43f4-a4a1-b9550667c47a",
+      "accepted": true,
+      "is_correct": true
+    },
+    {
+      "post_id": "09bbd858-650a-4c63-bb2f-e7ed3dc64972",
+      "post_title": "Deer in the Wild",
+      "correct_image_filename": "deer-009.jpg",
+      "suggested_image": "34175590-fa0f-4dab-84bc-b0239a59e38f",
+      "accepted": true,
+      "is_correct": true
+    }
+  ],
+  "precision": 80
+}

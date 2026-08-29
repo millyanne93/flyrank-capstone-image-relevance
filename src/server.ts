@@ -1,6 +1,8 @@
 import express from 'express';
 import { config } from './config';
 import imageRoutes from './routes/images.routes';
+import postRoutes from './routes/posts.routes'; 
+import suggestionRoutes from './routes/suggestions.routes'; 
 
 const app = express();
 app.use(express.json());
@@ -15,7 +17,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/', imageRoutes);
-pp.use('/', postRoutes);
+app.use('/', postRoutes);
 app.use('/', suggestionRoutes);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
